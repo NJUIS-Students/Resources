@@ -1,0 +1,33 @@
+name: PR Path Validity Checker
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+  
+jobs:
+  validate_paths:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v34
+        with:
+          files_with_prefix: "true"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run path validation script
+        run: |
+          if [ -z "${{ steps.changed-files.outputs.all_changed_files }}" ]; then
+            echo "No files changed."
+            exit 0
+          fi
+
+          # 将变更文件作为参数传给 Python 脚本
+          python scripts/check_paths.py ${{ steps.changed-files.outputs.all_changed_files }}
